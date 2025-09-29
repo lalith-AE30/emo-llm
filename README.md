@@ -41,11 +41,15 @@ You can find it in the official program here:
 If you found our paper helpful, please cite us as:
 
 ```
-@article{tak2025mechanistic,
-  title={Mechanistic Interpretability of Emotion Inference in Large Language Models},
-  author={Tak, Ala N and Banayeeanzade, Amin and Bolourani, Anahita and Kian, Mina and Jia, Robin and Gratch, Jonathan},
-  journal={arXiv preprint arXiv:2502.05489},
-  year={2025}
+@inproceedings{tak2025mechanistic,
+  title     = {Mechanistic Interpretability of Emotion Inference in Large Language Models},
+  author    = {Tak, Ala N. and Banayeeanzade, Amin and Bolourani, Anahita and Kian, Mina and Jia, Robin and Gratch, Jonathan},
+  booktitle = {Findings of the Association for Computational Linguistics: ACL 2025},
+  month     = jul,
+  year      = {2025},
+  address   = {Vienna, Austria},
+  publisher = {Association for Computational Linguistics},
+  pages     = {13090--13120}
 }
 ```
 
