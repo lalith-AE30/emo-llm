@@ -23,15 +23,21 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+
 class pySankeyException(Exception):
     pass
+
+
 class NullsInFrame(pySankeyException):
     pass
+
+
 class LabelMismatch(pySankeyException):
     pass
 
+
 def check_data_matches_labels(labels, data, side):
-    if len(labels >0):
+    if len(labels > 0):
         if isinstance(data, list):
             data = set(data)
         if isinstance(data, pd.Series):
@@ -41,17 +47,30 @@ def check_data_matches_labels(labels, data, side):
         if labels != data:
             msg = "\n"
             if len(labels) <= 20:
-                msg = "Labels: " + ",".join(labels) +"\n"
+                msg = "Labels: " + ",".join(labels) + "\n"
             if len(data) < 20:
                 msg += "Data: " + ",".join(data)
-            raise LabelMismatch('{0} labels and data do not match.{1}'.format(side, msg))
-    
+            raise LabelMismatch(
+                "{0} labels and data do not match.{1}".format(side, msg)
+            )
 
 
-def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
-           leftLabels=None, rightLabels=None, aspect=4, rightColor=False,
-           fontsize=14, figure_name=None,closePlot=False):
-    '''
+def sankey(
+    ax,
+    left,
+    right,
+    leftWeight=None,
+    rightWeight=None,
+    colorDict=None,
+    leftLabels=None,
+    rightLabels=None,
+    aspect=4,
+    rightColor=False,
+    fontsize=14,
+    figure_name=None,
+    closePlot=False,
+):
+    """
     Make Sankey Diagram showing flow from left-->right
 
     Inputs:
@@ -72,7 +91,7 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
                     according to its left label
     Ouput:
         None
-    '''
+    """
     if leftWeight is None:
         leftWeight = []
     if rightWeight is None:
@@ -97,11 +116,18 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
         left = left.reset_index(drop=True)
     if isinstance(right, pd.Series):
         right = right.reset_index(drop=True)
-    df = pd.DataFrame({'left': left, 'right': right, 'leftWeight': leftWeight,
-                       'rightWeight': rightWeight}, index=range(len(left)))
-    
+    df = pd.DataFrame(
+        {
+            "left": left,
+            "right": right,
+            "leftWeight": leftWeight,
+            "rightWeight": rightWeight,
+        },
+        index=range(len(left)),
+    )
+
     if len(df[(df.left.isnull()) | (df.right.isnull())]):
-        raise NullsInFrame('Sankey graph does not support null values.')
+        raise NullsInFrame("Sankey graph does not support null values.")
 
     # Identify all labels that appear 'left' or 'right'
     allLabels = pd.Series(np.r_[df.left.unique(), df.right.unique()]).unique()
@@ -110,13 +136,13 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
     if len(leftLabels) == 0:
         leftLabels = pd.Series(df.left.unique()).unique()
     else:
-        check_data_matches_labels(leftLabels, df['left'], 'left')
+        check_data_matches_labels(leftLabels, df["left"], "left")
 
     # Identify right labels
     if len(rightLabels) == 0:
         rightLabels = pd.Series(df.right.unique()).unique()
     else:
-        check_data_matches_labels(leftLabels, df['right'], 'right')
+        check_data_matches_labels(leftLabels, df["right"], "right")
     # If no colorDict given, make one
     if colorDict is None:
         colorDict = {}
@@ -127,8 +153,9 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
     else:
         missing = [label for label in allLabels if label not in colorDict.keys()]
         if missing:
-            raise RuntimeError('colorDict specified but missing values: '
-                                '{}'.format(','.join(missing)))
+            raise RuntimeError(
+                "colorDict specified but missing values: {}".format(",".join(missing))
+            )
 
     # Determine widths of individual strips
     ns_l = defaultdict()
@@ -146,28 +173,32 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
     widths_left = defaultdict()
     for i, l in enumerate(leftLabels):
         myD = {}
-        myD['left'] = df[df.left == l].leftWeight.sum()
+        myD["left"] = df[df.left == l].leftWeight.sum()
         if i == 0:
-            myD['bottom'] = 0
-            myD['top'] = myD['left']
+            myD["bottom"] = 0
+            myD["top"] = myD["left"]
         else:
-            myD['bottom'] = widths_left[leftLabels[i - 1]]['top'] + 0.02 * df.leftWeight.sum()
-            myD['top'] = myD['bottom'] + myD['left']
-            topEdge = myD['top']
+            myD["bottom"] = (
+                widths_left[leftLabels[i - 1]]["top"] + 0.02 * df.leftWeight.sum()
+            )
+            myD["top"] = myD["bottom"] + myD["left"]
+            topEdge = myD["top"]
         widths_left[l] = myD
 
     # Determine positions of right label patches and total widths
     widths_right = defaultdict()
     for i, l in enumerate(rightLabels):
         myD = {}
-        myD['right'] = df[df.right == l].rightWeight.sum()
+        myD["right"] = df[df.right == l].rightWeight.sum()
         if i == 0:
-            myD['bottom'] = 0
-            myD['top'] = myD['right']
+            myD["bottom"] = 0
+            myD["top"] = myD["right"]
         else:
-            myD['bottom'] = widths_right[rightLabels[i - 1]]['top'] + 0.02 * df.rightWeight.sum()
-            myD['top'] = myD['bottom'] + myD['right']
-            topEdge = myD['top']
+            myD["bottom"] = (
+                widths_right[rightLabels[i - 1]]["top"] + 0.02 * df.rightWeight.sum()
+            )
+            myD["top"] = myD["bottom"] + myD["right"]
+            topEdge = myD["top"]
         widths_right[l] = myD
 
     # Total vertical extent of diagram
@@ -177,30 +208,32 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
     for l in leftLabels:
         ax.fill_between(
             [-0.02 * xMax, 0],
-            2 * [widths_left[l]['bottom']],
-            2 * [widths_left[l]['bottom'] + widths_left[l]['left']],
+            2 * [widths_left[l]["bottom"]],
+            2 * [widths_left[l]["bottom"] + widths_left[l]["left"]],
             color=colorDict[l],
-            alpha=0.99
+            alpha=0.99,
         )
         ax.text(
             -0.05 * xMax,
-            widths_left[l]['bottom'] + 0.5 * widths_left[l]['left'],
+            widths_left[l]["bottom"] + 0.5 * widths_left[l]["left"],
             l,
-            {'ha': 'right', 'va': 'center'},
-            fontsize=fontsize
+            {"ha": "right", "va": "center"},
+            fontsize=fontsize,
         )
     for l in rightLabels:
         ax.fill_between(
-            [xMax, 1.02 * xMax], 2 * [widths_right[l]['bottom']],
-            2 * [widths_right[l]['bottom'] + widths_right[l]['right']],
+            [xMax, 1.02 * xMax],
+            2 * [widths_right[l]["bottom"]],
+            2 * [widths_right[l]["bottom"] + widths_right[l]["right"]],
             color=colorDict[l],
-            alpha=0.99
+            alpha=0.99,
         )
         ax.text(
-            1.05 * xMax, widths_right[l]['bottom'] + 0.5 * widths_right[l]['right'],
+            1.05 * xMax,
+            widths_right[l]["bottom"] + 0.5 * widths_right[l]["right"],
             l,
-            {'ha': 'left', 'va': 'center'},
-            fontsize=fontsize
+            {"ha": "left", "va": "center"},
+            fontsize=fontsize,
         )
 
     # Plot strips
@@ -211,25 +244,33 @@ def sankey(ax, left, right, leftWeight=None, rightWeight=None, colorDict=None,
                 lc = l2
             if len(df[(df.left == l) & (df.right == l2)]) > 0:
                 # Create array of y values for each strip, half at left value, half at right, convolve
-                ys_d = np.array(50 * [widths_left[l]['bottom']] + 50 * [widths_right[l2]['bottom']])
-                ys_d = np.convolve(ys_d, 0.05 * np.ones(20), mode='valid')
-                ys_d = np.convolve(ys_d, 0.05 * np.ones(20), mode='valid')
-                ys_u = np.array(50 * [widths_left[l]['bottom'] + ns_l[l][l2]] + 50 * [widths_right[l2]['bottom'] + ns_r[l][l2]])
-                ys_u = np.convolve(ys_u, 0.05 * np.ones(20), mode='valid')
-                ys_u = np.convolve(ys_u, 0.05 * np.ones(20), mode='valid')
+                ys_d = np.array(
+                    50 * [widths_left[l]["bottom"]] + 50 * [widths_right[l2]["bottom"]]
+                )
+                ys_d = np.convolve(ys_d, 0.05 * np.ones(20), mode="valid")
+                ys_d = np.convolve(ys_d, 0.05 * np.ones(20), mode="valid")
+                ys_u = np.array(
+                    50 * [widths_left[l]["bottom"] + ns_l[l][l2]]
+                    + 50 * [widths_right[l2]["bottom"] + ns_r[l][l2]]
+                )
+                ys_u = np.convolve(ys_u, 0.05 * np.ones(20), mode="valid")
+                ys_u = np.convolve(ys_u, 0.05 * np.ones(20), mode="valid")
 
                 # Update bottom edges at each label so next strip starts at the right place
-                widths_left[l]['bottom'] += ns_l[l][l2]
-                widths_right[l2]['bottom'] += ns_r[l][l2]
+                widths_left[l]["bottom"] += ns_l[l][l2]
+                widths_right[l2]["bottom"] += ns_r[l][l2]
                 ax.fill_between(
-                    np.linspace(0, xMax, len(ys_d)), ys_d, ys_u, alpha=0.65,
-                    color=colorDict[lc]
+                    np.linspace(0, xMax, len(ys_d)),
+                    ys_d,
+                    ys_u,
+                    alpha=0.65,
+                    color=colorDict[lc],
                 )
     # set axis off from ax
-    ax.axis('off')
-    
+    ax.axis("off")
+
     # ax.gcf().set_size_inches(6, 6)
-    if figure_name!=None:
-        plt.savefig("{}.png".format(figure_name), bbox_inches='tight', dpi=150)
+    if figure_name != None:
+        plt.savefig("{}.png".format(figure_name), bbox_inches="tight", dpi=150)
     if closePlot:
         plt.close()

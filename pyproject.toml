@@ -1,0 +1,24 @@
+[project]
+name = "emo-llm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cuml-cu13==26.2.*",
+    "huggingface-hub==0.25.1",
+    "matplotlib==3.8.2",
+    "numpy>=1.26.4",
+    "pandas==2.2.3",
+    "pillow==11.1.0",
+    "pysankey==0.0.1",
+    "python-dotenv==1.0.1",
+    "scikit-learn",
+    "seaborn==0.13.2",
+    "torch==2.4.0",
+    "tqdm==4.66.5",
+    "transformer-lens==2.7.0",
+    "transformers==4.47.1",
+    "typeguard>=4.5.1",
+    "wordcloud==1.9.4",
+]

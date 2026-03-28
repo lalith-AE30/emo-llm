@@ -24,7 +24,7 @@ logger = logging.get_logger(__name__)
 # this import has to be relative, otherwise, when setting trust_remote_code=True
 # huggingface transformers won't be able to load the module correctly
 from configuration_openelm import OpenELMConfig, make_divisible
-from transformer_lens.hook_points import HookedRootModule, HookPoint #added
+from transformer_lens.hook_points import HookPoint  # added
 
 
 class OpenELMRMSNorm(nn.Module):
@@ -237,9 +237,9 @@ class OpenELMRotaryEmbedding(torch.nn.Module):
         # can differ. For instance, when employing key-value (KV) caching for sequence prediction, the keys
         # represent embeddings of previous tokens and the current token, while the query corresponds
         # to the embedding of the current token only.
-        assert (
-            key_len >= query_len
-        ), "Number of keys has to be greater than or equal to number of queries."
+        assert key_len >= query_len, (
+            "Number of keys has to be greater than or equal to number of queries."
+        )
 
         query_float = query.float()
         key_float = key.float()
@@ -305,7 +305,7 @@ class OpenELMMultiHeadCausalAttention(nn.Module):
         self.num_v_heads = v_heads
         self.transformer_dim = config.model_dim
         self.num_groups = self.num_q_heads // self.num_k_heads
-        self.hook_attn_heads = HookPoint() #added
+        self.hook_attn_heads = HookPoint()  # added
 
     def extra_repr(self) -> str:
         return (
