@@ -588,10 +588,10 @@ def plot_cumulative_bar(
     legend_index,
     save_path="",
 ):
-    fig, axs = plt.subplots(1, len(values), figsize=figsize, constrained_layout=True)
+    fig, axs = plt.subplots(1, len(values), figsize=figsize, constrained_layout=True, squeeze=False)
     for j in range(len(values)):
         xtick_labels = xtick_labels_[j]
-        ax = axs[j]
+        ax = axs[0][j]
         for i in range(values[j].shape[-1]):
             ax.bar(
                 xtick_labels,

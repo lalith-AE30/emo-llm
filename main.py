@@ -39,7 +39,6 @@ from utils import (
 import argparse
 
 parser = argparse.ArgumentParser()
-
 parser.add_argument(
     "--model_index",
     type=int,
@@ -47,106 +46,105 @@ parser.add_argument(
     help="Index of the model to use, 0: Llama3.2_1B, 1: Llama3.1_8B, 2: Gemma-2-2b-it, 3: Gemma-2-9b-it, 4: Phi-3.5-mini-instruct, 5: Phi-3-medium-128k-instruct, 6: OLMo-1B-hf, 7: OLMo-7B-0724-Instruct-hf, 8: Ministral-8B-Instruct-2410, 9: Mistral-Nemo-Instruct-2407, 10: OLMo-2-1124-7B-Instruct, 11: OLMo-2-1124-13B-Instruct",
 )
 parser.add_argument("--bs", type=int, default=4, help="Batch Size")
-
 parser.add_argument("--prompt_type", type=str, default="joy_sadness_0")
 parser.add_argument(
     "--task_type", type=str, default="Emotion", choices=["Emotion", "FirstWord"]
 )
-
 parser.add_argument(
     "--open_vocab",
-    action="store_false",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Generate open vocab predictions",
 )
 parser.add_argument(
     "--in_domain",
-    action="store_false",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Generate in-domain emotion labels and filter the dataset to only keep the samples with correctly predicted labels.",
 )
 parser.add_argument(
     "--bbox_emotion_regression",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform black-box emotion regression using appraisals, i.e. use appraisals as features to predict emotion labels",
 )
 parser.add_argument(
     "--save_clean_logits",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Save the original clean logits",
 )
-
 parser.add_argument(
     "--extract_hidden_states",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Extract hidden states",
 )
 parser.add_argument(
     "--emotion_probing",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform emotion probing",
 )
 parser.add_argument(
     "--emotion_probing_non_linear",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform emotion probing",
 )
 parser.add_argument(
     "--appraisal_probing",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform appraisal probing",
 )
-
 parser.add_argument(
     "--extract_weights",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Extract weights from probes",
 )
 parser.add_argument(
     "--zero_intervention",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform zero intervention",
 )
 parser.add_argument(
     "--random_intervention",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform random intervention",
 )
 parser.add_argument(
     "--activation_patching",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform activation patching",
 )
 parser.add_argument(
     "--attention_weights",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Extract attention weights",
 )
-
 parser.add_argument(
     "--emotion_promotion",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=True,
     help="Perform emotion promotion",
 )
 parser.add_argument(
     "--appraisal_surgery",
-    action="store_true",
+    action=argparse.BooleanOptionalAction,
     default=False,
     help="Perform appraisal surgery",
 )
-
+parser.add_argument(
+    "--clean_probings",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+)
 args = parser.parse_args()
 ##############################################################################################
 
@@ -452,7 +450,7 @@ if args.extract_hidden_states:
         "------------------------------ Extracting Hidden States ------------------------------"
     )
     extraction_locs = [3, 6, 7]
-    extraction_tokens = [-1]  # , -2, -3, -4, -5]
+    extraction_tokens = [-1 , -2, -3, -4, -5]
     extraction_layers = list(range(model.config.num_hidden_layers))
 
     all_hidden_states = extract_hidden_states(
@@ -472,7 +470,7 @@ if args.emotion_probing:
     )
 
     extraction_locs = [3, 6, 7]
-    extraction_tokens = [-1]  # , -2, -3, -4, -5]
+    extraction_tokens = [-1 , -2, -3, -4, -5]
     extraction_layers = list(range(model.config.num_hidden_layers))
 
     if not args.extract_hidden_states:
@@ -510,7 +508,7 @@ if args.emotion_probing_non_linear:
     )
 
     extraction_locs = [3, 6, 7]
-    extraction_tokens = [-1]  # , -2, -3, -4, -5]
+    extraction_tokens = [-1 , -2, -3, -4, -5]
     extraction_layers = list(range(model.config.num_hidden_layers))
 
     if not args.extract_hidden_states:
@@ -700,7 +698,7 @@ if args.zero_intervention:
     )
     intervention_locs = [[3], [6], [7]]
 
-    for intervention_tokens in [[-1]]:  # [-2], [-3], [-4], [-5], 'all'
+    for intervention_tokens in [[-1], [-2], [-3], [-4], [-5]]:  # [-2], [-3], [-4], [-5], 'all'
         for loc in intervention_locs:
             intervention_results = {}
             for center_layer in tqdm(
@@ -851,11 +849,11 @@ if args.attention_weights:
 if (
     args.clean_probings
     or args.emotion_promotion
-    or args.appraisal_emotion_promotion
+    # or args.appraisal_emotion_promotion
     or args.appraisal_surgery
-    or args.appraisal_coeff_emotion_promotion
-    or args.random_promotion
-    or args.random_coeff
+    # or args.appraisal_coeff_emotion_promotion
+    # or args.random_promotion
+    # or args.random_coeff
 ):
     logger.info(
         "------------------------------ Loading Weights ------------------------------"

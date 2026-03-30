@@ -1023,15 +1023,16 @@ def promote_vec(
         )
         hs.append(r)
 
-        logits = outputs.logits.cpu()
-        logits = logits[:, -1, :]
+        logits = outputs.logits[:, -1, :]
         if ids_to_pick is not None:
+            if torch.is_tensor(ids_to_pick):
+                ids_to_pick = ids_to_pick.to(logits.device)
             logits = logits[:, ids_to_pick]
 
         returned_logits.append(logits)
 
     hs = torch.cat(hs, dim=0)
-    return torch.cat(returned_logits, dim=0), hs
+    return torch.cat(returned_logits, dim=0).cpu(), hs
 
 
 def make_projections(w):
