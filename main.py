@@ -402,7 +402,7 @@ assert HOOKED, "Unhooked models are not supported for the following experiments"
 try:
     train_data = pd.read_csv(f"outputs/{model_short_name}/filtered_train_data.csv")
     labels = torch.from_numpy(train_data[["emotion_id"] + appraisals].to_numpy())
-except:
+except FileNotFoundError:
     raise Exception(
         "Filtered train data not found, run the code again with --in_domain enabled"
     )
@@ -479,7 +479,7 @@ if args.emotion_probing:
                 f"outputs/{model_short_name}/hidden_states_layers_{extraction_layers}_locs_{extraction_locs}_tokens_{extraction_tokens}.pt",
                 weights_only=False,
             )
-        except:
+        except FileNotFoundError:
             raise Exception(
                 "Hidden states not found, run the code again with --extract_hidden_states"
             )
@@ -517,7 +517,7 @@ if args.emotion_probing_non_linear:
                 f"outputs/{model_short_name}/hidden_states_layers_{extraction_layers}_locs_{extraction_locs}_tokens_{extraction_tokens}.pt",
                 weights_only=False,
             )
-        except:
+        except FileNotFoundError:
             raise Exception(
                 "Hidden states not found, run the code again with --extract_hidden_states"
             )
@@ -557,7 +557,7 @@ if args.appraisal_probing:
                 f"outputs/{model_short_name}/hidden_states_layers_{extraction_layers}_locs_{extraction_locs}_tokens_{extraction_tokens}.pt",
                 weights_only=False,
             )
-        except:
+        except FileNotFoundError:
             raise Exception(
                 "Hidden states not found, run the code again with --extract_hidden_states"
             )
@@ -595,7 +595,7 @@ if args.extract_weights:
             f"outputs/{model_short_name}/emotion_probing_layers_{extraction_layers}_locs_{extraction_locs}_tokens_{extraction_tokens}.pt",
             weights_only=False,
         )
-    except:
+    except FileNotFoundError:
         raise Exception(
             "Emotion probing results not found, run the code again with --emotion_probing enabled"
         )
@@ -621,11 +621,11 @@ if args.extract_weights:
 
     for j, layer in enumerate(extraction_layers):
         for k, loc in enumerate(extraction_locs):
-            for l, token in enumerate(extraction_tokens):
-                emotions_weights_[:, j, k, l, :] = torch.from_numpy(
+            for tok_idx, token in enumerate(extraction_tokens):
+                emotions_weights_[:, j, k, tok_idx, :] = torch.from_numpy(
                     emotion_probing_results[layer][loc][token]["weights"]
                 )
-                emotions_biases_[:, j, k, l] = torch.from_numpy(
+                emotions_biases_[:, j, k, tok_idx] = torch.from_numpy(
                     emotion_probing_results[layer][loc][token]["bias"]
                 )
 
@@ -644,7 +644,7 @@ if args.extract_weights:
             f"outputs/{model_short_name}/appraisal_probing_layers_{extraction_layers}_locs_{extraction_locs}_tokens_{extraction_tokens}.pt",
             weights_only=False,
         )
-    except:
+    except FileNotFoundError:
         raise Exception(
             "Appraisal probing results not found, run the code again with --appraisal_probing enabled"
         )
@@ -670,11 +670,11 @@ if args.extract_weights:
     for i, app in enumerate(appraisals):
         for j, layer in enumerate(extraction_layers):
             for k, loc in enumerate(extraction_locs):
-                for l, token in enumerate(extraction_tokens):
-                    appraisals_weights[i, j, k, l, :] = torch.from_numpy(
+                for tok_idx, token in enumerate(extraction_tokens):
+                    appraisals_weights[i, j, k, tok_idx, :] = torch.from_numpy(
                         appraisal_probing_results[app][layer][loc][token]["weights"]
                     )
-                    appraisals_biases[i, j, k, l] = torch.from_numpy(
+                    appraisals_biases[i, j, k, tok_idx] = torch.from_numpy(
                         appraisal_probing_results[app][layer][loc][token]["bias"]
                     )
 
