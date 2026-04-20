@@ -12,6 +12,7 @@ import torch.optim as optim
 
 from dotenv import load_dotenv
 from huggingface_hub import login
+from rich.logging import RichHandler
 from torch.utils.data import Dataset
 from tqdm.auto import tqdm
 
@@ -55,19 +56,37 @@ class Log:
         )
         os.makedirs("logs", exist_ok=True)
         self.log_path = os.path.join("logs/", filename)
-        self.logger = self._setup_logging()
+        self.logger = self._setup_logging(log_name)
 
-    def _setup_logging(self):
+    def _setup_logging(self, logger_name: str):
         if os.path.exists(self.log_path):
             os.remove(self.log_path)
 
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%d-%b-%y %H:%M:%S",
-            handlers=[logging.FileHandler(self.log_path), logging.StreamHandler()],
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        logger.handlers.clear()
+
+        file_handler = logging.FileHandler(self.log_path)
+        file_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(message)s",
+                datefmt="%d-%b-%y %H:%M:%S",
+            )
         )
-        return logging.getLogger()
+
+        rich_handler = RichHandler(
+            show_time=True,
+            show_level=True,
+            show_path=False,
+            rich_tracebacks=True,
+            markup=True,
+        )
+        rich_handler.setFormatter(logging.Formatter("%(message)s"))
+
+        logger.addHandler(file_handler)
+        logger.addHandler(rich_handler)
+        return logger
 
 
 def log_system_info(logger):
@@ -858,7 +877,7 @@ def activation_patching(
         target_outputs = model.run_with_cache(
             **target_sentence_ids, return_dict=True, output_hidden_states=True
         )
-        target_clean_cache = {k: v.cpu() for k, v in target_outputs[1].items()}
+        _target_clean_cache = {k: v.cpu() for k, v in target_outputs[1].items()}
         target_clean_logits = target_outputs[0].logits[0, -1].cpu()
         del target_outputs
 

@@ -18,6 +18,15 @@ bar_width = 0.25
 
 
 def get_discrete_colors(n_colors, colormap="Spectral"):
+    """Generate a list of discrete colors from a colormap.
+    
+    Args:
+        n_colors (int): Number of colors to generate.
+        colormap (str): Name of the matplotlib colormap to use. Defaults to "Spectral".
+    
+    Returns:
+        list: A list of RGBA color tuples.
+    """
     colors = matplotlib.cm.get_cmap("Spectral", n_colors)
     cmap = plt.get_cmap("Spectral")
     colors = [cmap(i / (n_colors - 1)) for i in range(n_colors)]
@@ -61,6 +70,22 @@ def plot_correlations(
     xtick_rotations=90,
     ytick_rotations=0,
 ):
+    """Plot a grid of correlation heatmaps.
+    
+    Args:
+        values (torch.Tensor): Tensor of shape (n_rows, n_cols, height, width) containing correlation values.
+        title (str): Main title for the figure.
+        xticklabels (list): Labels for x-axis ticks.
+        yticklabels (list): Labels for y-axis ticks.
+        xlabels (list): Labels for each subplot's x-axis.
+        ylabels (list): Labels for each subplot's y-axis.
+        figsize (tuple): Figure size as (width, height).
+        fontsize (int): Font size for labels and ticks.
+        vmax (float): Maximum value for color scale (symmetric around zero).
+        save_path (str): Path to save the figure (without extension). Defaults to "" (no save).
+        xtick_rotations (int): Rotation angle for x-axis tick labels. Defaults to 90.
+        ytick_rotations (int): Rotation angle for y-axis tick labels. Defaults to 0.
+    """
     fig, ax = plt.subplots(values.shape[0], values.shape[1], figsize=figsize)
 
     if values.shape[0] == 1 and values.shape[1] == 1:
@@ -114,6 +139,15 @@ def plot_correlations(
 
 
 def generate_correlation_heatmap(d1, d2):
+    """Generate correlation heatmap between two tensors using their normalized dot products.
+    
+    Args:
+        d1 (torch.Tensor): First tensor for comparison.
+        d2 (torch.Tensor): Second tensor for comparison.
+    
+    Returns:
+        torch.Tensor: Correlation matrix between d1 and d2.
+    """
     d1 = d1 / d1.norm(dim=-1, keepdim=True)
     d2 = d2 / d2.norm(dim=-1, keepdim=True)
 
@@ -132,6 +166,16 @@ def generate_correlation_heatmap(d1, d2):
 
 
 def load_emotion_and_appraisals_list(model_name):
+    """Load emotion and appraisal information for a given model.
+    
+    Args:
+        model_name (str): Name of the model to load data for.
+    
+    Returns:
+        tuple: Contains (emotion_to_id, id_to_emotion, appraisals_to_id, id_to_appraisals,
+               appraisal_to_formal_name, appraisal_to_formal_name_without_newline, appraisals,
+               coefficients, biasses, clean_logits, appraisal_labels).
+    """
     emotion_appraisal_labels = torch.load(
         f"outputs/{model_name}/emotion_appraisal_labels.pt", weights_only=False
     )
@@ -188,6 +232,16 @@ def load_emotion_and_appraisals_list(model_name):
 
 
 def process_open_vocab(model_name, save_prefix="", freq_threshold=30):
+    """Process open vocabulary prediction results and filter by frequency threshold.
+    
+    Args:
+        model_name (str): Name of the model.
+        save_prefix (str): Prefix for the save file. Defaults to "".
+        freq_threshold (int): Keep top N predictions by frequency. Defaults to 30.
+    
+    Returns:
+        tuple: (ground_truth, preds_model, filtered_preds) - Lists of prediction labels and filtered versions.
+    """
     [ground_truth, preds_model] = torch.load(
         f"outputs/{model_name}/{save_prefix}open_vocab_predictions.pt",
         weights_only=False,
@@ -200,9 +254,9 @@ def process_open_vocab(model_name, save_prefix="", freq_threshold=30):
     top_ = list(pred_to_freq.keys())[:freq_threshold]
     filtered_preds = [" others" if p not in top_ else p for p in preds_model]
 
-    ground_truth = [l.strip() for l in ground_truth]
-    preds_model = [l.strip() for l in preds_model]
-    filtered_preds = [l.strip() for l in filtered_preds]
+    ground_truth = [label.strip() for label in ground_truth]
+    preds_model = [label.strip() for label in preds_model]
+    filtered_preds = [label.strip() for label in filtered_preds]
 
     return ground_truth, preds_model, filtered_preds
 
@@ -210,6 +264,17 @@ def process_open_vocab(model_name, save_prefix="", freq_threshold=30):
 def plot_sankey(
     d1, d2, aspect=10, fontsize=8, save_path="", title="", colorDict=emotion_to_color
 ):
+    """Create and display a Sankey diagram showing flow between two categorical variables.
+    
+    Args:
+        d1 (list): Source category labels.
+        d2 (list): Target category labels.
+        aspect (int): Aspect ratio for the diagram. Defaults to 10.
+        fontsize (int): Font size for labels. Defaults to 8.
+        save_path (str): Path to save the figure (without extension). Defaults to "" (no save).
+        title (str): Title for the diagram. Defaults to "".
+        colorDict (dict): Dictionary mapping categories to colors. Defaults to emotion_to_color.
+    """
     sankey(d1, d2, aspect=aspect, fontsize=fontsize, colorDict=colorDict)
     plt.title(title)
     if save_path != "":
@@ -220,6 +285,16 @@ def plot_sankey(
 def plot_wordcloud(
     list_of_words, save_path="", title="", width=1500, height=800, min_font_size=10
 ):
+    """Generate and display a word cloud from a list of words.
+    
+    Args:
+        list_of_words (list): List of words to include in the word cloud.
+        save_path (str): Path to save the figure (without extension). Defaults to "" (no save).
+        title (str): Title for the word cloud. Defaults to "".
+        width (int): Width of the word cloud in pixels. Defaults to 1500.
+        height (int): Height of the word cloud in pixels. Defaults to 800.
+        min_font_size (int): Minimum font size for words. Defaults to 10.
+    """
     # cloud_mask = np.array(Image.open("figs/cloud.pdf"))
 
     text = [j.strip() for j in list_of_words]
@@ -257,6 +332,17 @@ def plot_confusion_matrix(
     figsize=(13, 13),
     fontsize=18,
 ):
+    """Generate and display a confusion matrix heatmap.
+    
+    Args:
+        labels_true (list): True class labels.
+        labels_predicted (list): Predicted class labels.
+        save_prefix (str): Prefix for saving (unused). Defaults to "".
+        emotion_to_id (dict): Mapping from emotion names to IDs for axis labels.
+        save_path (str): Path to save the figure (without extension). Defaults to "confusion_matrix".
+        figsize (tuple): Figure size as (width, height). Defaults to (13, 13).
+        fontsize (int): Font size for labels and annotations. Defaults to 18.
+    """
 
     from sklearn.metrics import confusion_matrix
 
@@ -287,6 +373,17 @@ def plot_confusion_matrix(
 
 
 def process_emotion_probe_results(model_name, layers, locs_to_probe, tokens):
+    """Load and process emotion probing results from disk.
+    
+    Args:
+        model_name (str): Name of the model.
+        layers (list): List of layer indices that were probed.
+        locs_to_probe (list): List of probe locations (e.g., [3, 6, 7]).
+        tokens (list): List of token positions to probe.
+    
+    Returns:
+        torch.Tensor: Tensor of accuracy results with shape (n_locations, n_tokens, n_layers).
+    """
     data = torch.load(
         f"outputs/{model_name}/emotion_probing_layers_{layers}_locs_{locs_to_probe}_tokens_{tokens}.pt",
         weights_only=False,
@@ -294,7 +391,7 @@ def process_emotion_probe_results(model_name, layers, locs_to_probe, tokens):
 
     emotion_results = [
         [
-            [data[l][i][token_to_pick]["accuracy_test"] for l in layers]
+            [data[layer][i][token_to_pick]["accuracy_test"] for layer in layers]
             for token_to_pick in tokens
         ]
         for i in locs_to_probe
@@ -306,6 +403,17 @@ def process_emotion_probe_results(model_name, layers, locs_to_probe, tokens):
 
 
 def process_non_linear_emotion_probe_results(model_name, layers, locs_to_probe, tokens):
+    """Load and process non-linear emotion probing results from disk.
+    
+    Args:
+        model_name (str): Name of the model.
+        layers (list): List of layer indices that were probed.
+        locs_to_probe (list): List of probe locations (e.g., [3, 6, 7]).
+        tokens (list): List of token positions to probe.
+    
+    Returns:
+        torch.Tensor: Tensor of accuracy results with shape (n_locations, n_tokens, n_layers).
+    """
     data = torch.load(
         f"outputs/{model_name}/non_linaer_emotion_probing_layers_{layers}_locs_{locs_to_probe}_tokens_{tokens}.pt",
         weights_only=False,
@@ -313,7 +421,7 @@ def process_non_linear_emotion_probe_results(model_name, layers, locs_to_probe, 
 
     emotion_results = [
         [
-            [data[l][i][token_to_pick]["accuracy_test"] for l in layers]
+            [data[layer][i][token_to_pick]["accuracy_test"] for layer in layers]
             for token_to_pick in tokens
         ]
         for i in locs_to_probe
@@ -340,7 +448,26 @@ def plot_bars(
     activate_legend=True,
     legend_loc="best",
     save_path="",
-):  # values: [n_plots, n_probes, n_layers]
+):
+    """Create grouped bar charts for comparing multiple metrics across categories.
+    
+    Args:
+        values_ (torch.Tensor): Tensor of shape (n_plots, n_probes, n_layers) containing bar heights.
+        figsize (tuple): Figure size as (width, height).
+        labels (list): Legend labels for each group of bars.
+        xticklabels (list): Labels for x-axis ticks (categories).
+        bar_width (float): Width of each bar.
+        fontsize (int): Font size for all text elements.
+        titles (list): Title for each subplot.
+        suptitle (str): Super title for the entire figure.
+        xlabel (str): Label for x-axis.
+        ylabel (str): Label for y-axis.
+        y_low (float): Minimum value for y-axis. Defaults to None (auto).
+        y_high (float): Maximum value for y-axis. Defaults to None (auto).
+        activate_legend (bool): Whether to display legend. Defaults to True.
+        legend_loc (str): Location for legend. Defaults to "best".
+        save_path (str): Path to save the figure (without extension). Defaults to "" (no save).
+    """
     n_plots = values_.shape[0]
     fig, axs = plt.subplots(1, n_plots, figsize=figsize, constrained_layout=True)
     fig.suptitle(suptitle, fontsize=fontsize)
@@ -409,6 +536,35 @@ def plot_heatmap(
     figsize=(20, 12),
     save_path="",
 ):
+    """Create and display one or more heatmap subplots with shared colorbar.
+    
+    Args:
+        vals (torch.Tensor): Tensor of heatmap values, shape (n_heatmaps, height, width).
+        titles (list): Title for each heatmap.
+        xticks (list): X-axis tick positions.
+        xtick_labels (list): X-axis tick labels.
+        fontsize (int): Font size for labels and ticks.
+        yticks (list): Y-axis tick positions.
+        ytick_labels (list): Y-axis tick labels.
+        yticks_rotation (int): Rotation angle for y-axis labels.
+        xticks_rotation (int): Rotation angle for x-axis labels.
+        suptitle (str): Super title for the figure. Defaults to None.
+        subtitle (str): Subtitle prefix (unused). Defaults to "Probe at".
+        vmax (float): Maximum value for color scale. Defaults to None (auto).
+        vmin (float): Minimum value for color scale. Defaults to None (auto).
+        y_axis_label (str): Label for y-axis. Defaults to "Tokens".
+        x_axis_label (str): Label for x-axis. Defaults to "Layers".
+        cmap (str): Colormap name. Defaults to "magma".
+        cmap_label (str): Label for colorbar. Defaults to "Accuracy".
+        cmap_shrink (float): Shrink factor for colorbar. Defaults to 1.0.
+        cmap_aspect (int): Aspect ratio for colorbar. Defaults to 10.
+        cmap_fraction (float): Fraction of plot for colorbar. Defaults to 0.03.
+        cmap_pad (float): Padding for colorbar. Defaults to 0.02.
+        cbar_yticks (list): Custom colorbar tick positions. Defaults to None.
+        cbar_ytick_labels (list): Custom colorbar tick labels. Defaults to None.
+        figsize (tuple): Figure size as (width, height). Defaults to (20, 12).
+        save_path (str): Path to save the figure (without extension). Defaults to "" (no save).
+    """
 
     if vmax is None:
         vmax = vals.max().item()
@@ -478,6 +634,18 @@ def plot_heatmap(
 
 
 def process_zero_intervention(model_name, locs_to_probe, tokens, layers_centers, span):
+    """Process zero intervention results (baseline activations set to zero).
+    
+    Args:
+        model_name (str): Name of the model.
+        locs_to_probe (list): List of probe locations.
+        tokens (list): List of token positions to probe.
+        layers_centers (list): List of layer indices to analyze.
+        span (int): Span parameter for intervention.
+    
+    Returns:
+        torch.Tensor: Tensor of accuracy values comparing zero-intervened outputs to clean outputs.
+    """
     values = torch.zeros(len(locs_to_probe), len(tokens), len(layers_centers))
     clean_logits = torch.load(
         f"outputs/{model_name}/original_logits.pt", weights_only=False
@@ -490,7 +658,7 @@ def process_zero_intervention(model_name, locs_to_probe, tokens, layers_centers,
                 f"outputs/{model_name}/zero_intervention_results_layers_{layers_centers}_span_{span}_locs_{[loc]}_token_{token_to_pick}.pt",
                 weights_only=False,
             )
-            data = torch.stack([data[l] for l in layers_centers])
+            data = torch.stack([data[layer] for layer in layers_centers])
             values[k, j] = (
                 data.argmax(dim=-1).eq(clean_logits.argmax(-1)).float().mean(dim=-1)
             )
@@ -501,6 +669,19 @@ def process_zero_intervention(model_name, locs_to_probe, tokens, layers_centers,
 def process_random_intervention(
     model_name, locs_to_probe, tokens, layers_centers, span, seed
 ):
+    """Process random intervention results (activations replaced with random values).
+    
+    Args:
+        model_name (str): Name of the model.
+        locs_to_probe (list): List of probe locations.
+        tokens (list): List of token positions to probe.
+        layers_centers (list): List of layer indices to analyze.
+        span (int): Span parameter for intervention.
+        seed (int): Random seed used for generating random values.
+    
+    Returns:
+        torch.Tensor: Tensor of accuracy values comparing random-intervened outputs to clean outputs.
+    """
     values = torch.zeros(len(locs_to_probe), len(tokens), len(layers_centers))
 
     clean_logits = torch.load(
@@ -521,7 +702,7 @@ def process_random_intervention(
                     f"outputs/{model_name}/original_logits_new.pt", weights_only=False
                 )  # a little dirty code because the transformer library updated Olmo model behavior during our experiments
                 # print('clean logits loaded with shape:', clean_logits.shape)
-            data = torch.stack([data[l] for l in layers_centers])
+            data = torch.stack([data[layer] for layer in layers_centers])
             values[k, j] = (
                 data.argmax(dim=-1).eq(clean_logits.argmax(-1)).float().mean(dim=-1)
             )
@@ -533,9 +714,25 @@ def process_random_intervention(
 def process_activation_patching(
     model_name, num_exps, locs_to_probe, tokens, layers_centers, span
 ):
+    """Process activation patching results to compute identity preservation and target accuracy.
+    
+    Args:
+        model_name (str): Name of the model.
+        num_exps (int): Number of experiments/examples.
+        locs_to_probe (list): List of probe locations.
+        tokens (list): List of token positions to probe.
+        layers_centers (list): List of layer indices to analyze.
+        span (int): Span parameter for patching.
+    
+    Returns:
+        torch.Tensor: Tensor of shape (n_locations, n_tokens, n_layers, 3) containing:
+            - [:, :, :, 0]: Source identity preservation (source_clean == patched)
+            - [:, :, :, 1]: Target match (patched == target_clean)
+            - [:, :, :, 2]: Neither source nor target match
+    """
     values = torch.zeros((len(locs_to_probe), len(tokens), len(layers_centers), 3))
 
-    for l, loc in tqdm(enumerate(locs_to_probe), total=len(locs_to_probe)):
+    for loc_idx, loc in tqdm(enumerate(locs_to_probe), total=len(locs_to_probe)):
         for t, token_to_pick in enumerate(tokens):
             data = torch.load(
                 f"outputs/{model_name}/patching_results_layers_{layers_centers}_locs_{[loc]}_span_{span}_token_{[token_to_pick]}.pt",
@@ -557,13 +754,13 @@ def process_activation_patching(
                 patched_labels = torch.stack(patched_logits).argmax(dim=-1)
                 target_labels_clean = torch.stack(target_logits_clean).argmax(dim=-1)
 
-                values[l, t, k, 0] = (
+                values[loc_idx, t, k, 0] = (
                     (source_labels_clean == patched_labels).float().mean()
                 )
-                values[l, t, k, 1] = (
+                values[loc_idx, t, k, 1] = (
                     (patched_labels == target_labels_clean).float().mean()
                 )
-                values[l, t, k, 2] = 1.0 - values[l, t, k, 0] - values[l, t, k, 1]
+                values[loc_idx, t, k, 2] = 1.0 - values[loc_idx, t, k, 0] - values[loc_idx, t, k, 1]
 
     # torch.save(values,
     #            f'outputs/{model_name}/processed_patching_results_layers_{layers_centers}_locs_{locs_to_probe}_span_{span}_tokens_{tokens}.pt')
@@ -588,6 +785,25 @@ def plot_cumulative_bar(
     legend_index,
     save_path="",
 ):
+    """Create stacked bar charts showing cumulative values across categories.
+    
+    Args:
+        values (list): List of tensors, each of shape (n_categories, n_components) for each subplot.
+        titles (list): Title for each subplot.
+        bar_width (float): Width of each bar.
+        figsize (tuple): Figure size as (width, height).
+        fontsize (int): Font size for labels and ticks.
+        xtick_labels_ (list): List of x-axis tick labels for each subplot.
+        x_low (float): Minimum value for x-axis.
+        x_high (float): Maximum value for x-axis.
+        y_low (float): Minimum value for y-axis.
+        y_high (float): Maximum value for y-axis.
+        colors (list): Colors for each stack component.
+        labels (list): Legend labels for each stack component.
+        legend_loc (str): Location for legend.
+        legend_index (int): Index of subplot where legend should appear.
+        save_path (str): Path to save the figure (without extension). Defaults to "" (no save).
+    """
     fig, axs = plt.subplots(1, len(values), figsize=figsize, constrained_layout=True, squeeze=False)
     for j in range(len(values)):
         xtick_labels = xtick_labels_[j]
@@ -623,6 +839,16 @@ def plot_cumulative_bar(
 
 
 def sort_two_emotion_lists_based_on_the_first_one(first_list, second_list, reference):
+    """Sort two lists together based on the order of elements in the first list relative to a reference.
+    
+    Args:
+        first_list (list): List of items to sort by (must be subset of reference).
+        second_list (list): List of items to sort alongside first_list.
+        reference (list): Reference list defining the desired sort order.
+    
+    Returns:
+        tuple: (first_sorted, second_sorted) - Both lists sorted according to reference order.
+    """
     reference_to_id = {r: i for i, r in enumerate(reference)}
     id_to_reference = {i: r for i, r in enumerate(reference)}
     first = [reference_to_id[f] for f in first_list]
@@ -635,6 +861,14 @@ def sort_two_emotion_lists_based_on_the_first_one(first_list, second_list, refer
 
 
 def normalize_row_wise_with_nan_mask(values):
+    """Normalize tensor values row-wise to [0, 1] range, preserving NaN values.
+    
+    Args:
+        values (torch.Tensor): Input tensor of any shape with potential NaN values.
+    
+    Returns:
+        torch.Tensor: Normalized tensor with same shape as input, with NaN values preserved.
+    """
     values = values.clone()
     non_nan_mask = ~torch.isnan(values)
     for i in range(values.shape[0]):

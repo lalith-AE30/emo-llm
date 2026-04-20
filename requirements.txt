@@ -5,6 +5,7 @@ pandas==2.2.3
 Pillow==11.1.0
 pySankey==0.0.1
 python-dotenv==1.0.1
+rich>=14.3.3
 scikit-learn==1.4.1.post1
 seaborn==0.13.2
 torch==2.4.0

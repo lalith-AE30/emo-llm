@@ -39,17 +39,17 @@ def build_prompt(shots=("joy", "sadness"), prompt_index=0):
     prompt5 = "Decipher the label for the following statements: "
     prompt6 = "What is the label, for the statement? "
     prompt7 = "What is the label, given the context? "
-    promot8 = emotion_list + prompt4
-    promot9 = emotion_list + prompt5
+    prompt8 = emotion_list + prompt4
+    prompt9 = emotion_list + prompt5
     # TODO play with the sample shots less prompts (one shot, 2 shot, up to 13 shot)
 
-    prompt = [prompt0, prompt1, prompt2, prompt3, prompt4, prompt5, prompt6, prompt7][
+    prompt = [prompt0, prompt1, prompt2, prompt3, prompt4, prompt5, prompt6, prompt7, prompt8, prompt9][
         prompt_index
     ]
-    #
     for shot, emotion in sample_shots:
         prompt += f" Context: {shot} Answer: {emotion}"
-    func = lambda x: f"{prompt} Context: {x} Answer:"
+    def func(x):
+        return f"{prompt} Context: {x} Answer:"
 
     return func
 
@@ -64,7 +64,8 @@ def build_prompt_first_word_prediction():
 
     for shot, emotion in sample_shots:
         prompt += f" Context: {shot} Answer: {emotion}"
-    func = lambda x: f"{prompt} Context: {x} Answer:"
+    def func(x):
+        return f"{prompt} Context: {x} Answer:"
 
     return func
 
